@@ -1,4 +1,4 @@
-tk-terminal
+tk-shell
 ===========
 
-Terminal based engine that runs in a standard C python interpreter
+Shell based engine that runs in a standard C python interpreter
