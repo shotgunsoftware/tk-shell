@@ -6,9 +6,11 @@ Implements the Terminal Engine in Tank, e.g the a way to run apps inside of a st
 terminal session.
 """
 
-from tank.platform import Engine
-import tank
 import sys
+import code
+
+import tank
+from tank.platform import Engine
 
 class TankProgressWrapper(object):
     """
@@ -32,6 +34,37 @@ class TerminalEngine(Engine):
         self._queue = []
         
                 
+    def run_command(self, command_name, *args, **kwargs):
+        command = self.commands.get(command_name, {}).get("callback")
+
+        if not command:
+            print "A command named %s is not registered with Tank in this environment." % command_name
+            return False
+        else:
+            try:
+                command(*args, **kwargs)
+            except Exception as e:
+                print e
+                return False
+        return True
+
+    def interact(self, *args, **kwargs):
+
+        symbol_table = globals()
+        symbol_table.update(locals())
+        # give access to list of commands
+        symbol_table["command_names"] = self.commands.keys()
+        # put commands into locals
+        for name, value in self.commands.items():
+            symbol_table[name] = value["callback"]
+
+        # put kwargs into locals
+        symbol_table.update(kwargs)
+        
+        banner = "Entering Tank interactive mode."
+        code.interact(local=symbol_table, banner=banner)
+        return True
+
     ##########################################################################################
     # logging interfaces
 
@@ -43,12 +76,10 @@ class TerminalEngine(Engine):
         sys.stdout.write("%s\n" % msg)
         
     def log_warning(self, msg):
-        # note: java bridge only captures stdout, not stderr
-        sys.stdout.write("WARNING: %s\n" % msg)
+        sys.stderr.write("WARNING: %s\n" % msg)
     
     def log_error(self, msg):
-        # note: java bridge only captures stdout, not stderr
-        sys.stdout.write("ERROR: %s\n" % msg)
+        sys.stderr.write("ERROR: %s\n" % msg)
 
     ##########################################################################################
     # queue implementation
