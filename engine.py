@@ -12,18 +12,8 @@ import code
 import tank
 from tank.platform import Engine
 
-class TankProgressWrapper(object):
-    """
-    A progressbar wrapper.
-    """
-    def __init__(self, title):
-        self.__title = title
-    
-    def set_progress(self, percent):
-            print("TANK_PROGRESS Task:%s Progress:%d%%" % (self.__title, percent))
-    
 
-class TerminalEngine(Engine):
+class ShellEngine(Engine):
     """
     An engine for a terminal.    
     """
@@ -38,17 +28,17 @@ class TerminalEngine(Engine):
         command = self.commands.get(command_name, {}).get("callback")
 
         if not command:
-            print "A command named %s is not registered with Tank in this environment." % command_name
+            self.log_error("A command named %s is not registered with Tank in this environment." % command_name)
             return False
         else:
-            try:
-                command(*args, **kwargs)
-            except Exception as e:
-                print e
-                return False
+            command(*args, **kwargs)
         return True
 
     def interact(self, *args, **kwargs):
+        """
+        Opens a python interactive shell with commands registered with the engine and 
+        arguments passed on the command line available in the environment.
+        """
 
         symbol_table = globals()
         symbol_table.update(locals())
@@ -61,7 +51,9 @@ class TerminalEngine(Engine):
         # put kwargs into locals
         symbol_table.update(kwargs)
         
-        banner = "Entering Tank interactive mode."
+        banner =  "Entering Tank interactive mode.\n"
+        banner += "See 'command_names' variable for a list of app commands registered with this engine."
+        banner += "See 'args' variable for aruments, see 'kwargs' variable for keyword arguments."
         code.interact(local=symbol_table, banner=banner)
         return True
 
@@ -81,6 +73,17 @@ class TerminalEngine(Engine):
     def log_error(self, msg):
         sys.stderr.write("ERROR: %s\n" % msg)
 
+class TankProgressWrapper(object):
+    """
+    A progressbar wrapper.
+    """
+    def __init__(self, title):
+        self.__title = title
+    
+    def set_progress(self, percent):
+        """Prints current progress."""
+        print("TANK_PROGRESS Task:%s Progress:%d%%" % (self.__title, percent))
+    
     ##########################################################################################
     # queue implementation
     
