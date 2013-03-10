@@ -19,7 +19,9 @@ class ShellEngine(Engine):
     """
         
     def init_engine(self):
-        pass
+        self._has_ui = False
+        self._qt_application = None
+        self._init_pyside()
         
     def run_command(self, command_name, *args, **kwargs):
         command = self.commands.get(command_name, {}).get("callback")
@@ -59,7 +61,7 @@ class ShellEngine(Engine):
         """
         The shell engine never has a UI
         """
-        return False
+        return self._has_ui
     
 
     ##########################################################################################
@@ -77,4 +79,81 @@ class ShellEngine(Engine):
     
     def log_error(self, msg):
         sys.stderr.write("ERROR: %s\n" % msg)
+
+    ##########################################################################################
+    # pyside
+    
+    def _init_pyside(self):
+        """
+        Handles the pyside init
+        """
+        
+        # first see if pyside is already present - in that case skip!
+        try:
+            from PySide import QtGui
+        except:
+            # fine, we don't expect pyside to be present just yet
+            self.log_debug("PySide not detected - This instance of tk-shell cannot run UI apps.")
+        else:
+            # looks like pyside is already working! No need to do anything
+            self.log_debug("PySide detected - Tank will use the version in %s." % QtGui.__file__)
+            self._has_ui = True
+        
+    def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
+        """
+        Shows a non-modal dialog window in a way suitable for this engine. 
+        The engine will attempt to parent the dialog nicely to the host application.
+        
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        
+        Additional parameters specified will be passed through to the widget_class constructor.
+        
+        :returns: the created widget_class instance
+        """
+        if not self._has_ui:
+            self.log_error("Cannot show dialog! No pyside appears to be installed.")
+        
+        start_app_loop = False
+        if not self._qt_running:
+            self._qt_application = QtGui.QApplication()
+            start_app_loop = True
+            
+        obj = Engine.show_dialog(self, title, bundle, widget_class, *args, **kwargs)
+        if start_app_loop:
+            self._qt_application.exec_()
+            # this is a bit weird - we are not returning the dialog object because
+            # at this point the application has already exited
+            return None
+        else:
+            # a dialog was called by a signal or slot
+            # in the qt message world. return its handle
+            return obj
+    
+    def show_modal(self, title, bundle, widget_class, *args, **kwargs):
+        """
+        Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
+        integrate it as seamlessly as possible into the host application. This call is blocking 
+        until the user closes the dialog.
+        
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with this window
+        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
+        
+        Additional parameters specified will be passed through to the widget_class constructor.
+
+        :returns: (a standard QT dialog status return code, the created widget_class instance)
+        """
+        if not self._has_ui:
+            self.log_error("Cannot show dialog! No pyside appears to be installed.")
+
+        if not self._qt_running:
+            # qt is not running - meaning there are no other dialogs
+            # this is a chicken and egg thing - need to handle this dialog
+            # as a non-modal becuase of dialog.exec() and app.exec()
+            return self.show_modal(title, bundle, widget_class, *args, **kwargs)
+        else:
+            # qt is running! Just use std base class implementation
+            return Engine.show_modal(self, title, bundle, widget_class, *args, **kwargs)
 
