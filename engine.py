@@ -21,7 +21,6 @@ class ShellEngine(Engine):
     def init_engine(self):
         self._has_ui = False
         self._qt_application = None
-        self._init_pyside()
         
     def run_command(self, command_name, *args, **kwargs):
         command = self.commands.get(command_name, {}).get("callback")
@@ -81,23 +80,40 @@ class ShellEngine(Engine):
         sys.stderr.write("ERROR: %s\n" % msg)
 
     ##########################################################################################
-    # pyside
+    # pyside / qt
     
-    def _init_pyside(self):
+    def _define_qt_base(self):
         """
-        Handles the pyside init
+        check for pyside then pyqt
         """
         
-        # first see if pyside is already present - in that case skip!
-        try:
-            from PySide import QtGui
-        except:
-            # fine, we don't expect pyside to be present just yet
-            self.log_debug("PySide not detected - This instance of tk-shell cannot run UI apps.")
-        else:
-            # looks like pyside is already working! No need to do anything
-            self.log_debug("PySide detected - Tank will use the version in %s." % QtGui.__file__)
-            self._has_ui = True
+        base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
+        self._has_ui = False
+        
+        if not self._has_ui:
+            try:
+                from PySide import QtCore, QtGui
+                base["qt_core"] = QtCore
+                base["qt_gui"] = QtGui
+                base["dialog_base"] = QtGui.QDialog
+                self._has_ui = True
+            except:
+                self.log_debug("Found PySide install present in %s." % QtGui.__file__)
+        
+        if not self._has_ui:
+            try:
+                from PyQt4 import QtCore, QtGui
+                # hot patch the library to make it work with pyside code
+                QtCore.Signal = QtCore.pyqtSignal                
+                base["qt_core"] = QtCore
+                base["qt_gui"] = QtGui
+                base["dialog_base"] = QtGui.QDialog
+                self._has_ui = True
+            except:
+                self.log_debug("Found PyQt install present in %s." % QtGui.__file__)
+        
+        return base
+        
         
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
@@ -113,10 +129,12 @@ class ShellEngine(Engine):
         :returns: the created widget_class instance
         """
         if not self._has_ui:
-            self.log_error("Cannot show dialog! No pyside appears to be installed.")
+            self.log_error("Cannot show dialog! No QT support appears to exist in this enging. "
+                           "In order for the shell engine to run UI based apps, either pyside "
+                           "or PyQt needs to be installed in your system.")
         
         start_app_loop = False
-        if not self._qt_running:
+        if self._qt_application is None:
             self._qt_application = QtGui.QApplication()
             start_app_loop = True
             
@@ -146,13 +164,15 @@ class ShellEngine(Engine):
         :returns: (a standard QT dialog status return code, the created widget_class instance)
         """
         if not self._has_ui:
-            self.log_error("Cannot show dialog! No pyside appears to be installed.")
+            self.log_error("Cannot show dialog! No QT support appears to exist in this enging. "
+                           "In order for the shell engine to run UI based apps, either pyside "
+                           "or PyQt needs to be installed in your system.")
 
-        if not self._qt_running:
-            # qt is not running - meaning there are no other dialogs
+        if self._qt_application is None:
+            # no Qapp is running - meaning there are no other dialogs
             # this is a chicken and egg thing - need to handle this dialog
             # as a non-modal becuase of dialog.exec() and app.exec()
-            return self.show_modal(title, bundle, widget_class, *args, **kwargs)
+            return self.show_dialog(title, bundle, widget_class, *args, **kwargs)
         else:
             # qt is running! Just use std base class implementation
             return Engine.show_modal(self, title, bundle, widget_class, *args, **kwargs)
