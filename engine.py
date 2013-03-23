@@ -17,67 +17,51 @@ class ShellEngine(Engine):
     """
     An engine for a terminal.    
     """
-        
+
     def init_engine(self):
         self._has_ui = False
         self._qt_application = None
-        
-    def run_command(self, command_name, *args, **kwargs):
-        command = self.commands.get(command_name, {}).get("callback")
+        self._log = None
 
-        if not command:
-            self.log_error("A command named %s is not registered with Tank in this environment." % command_name)
-            return False
-        else:
-            command(*args, **kwargs)
-        return True
-
-    def interact(self, *args, **kwargs):
+    def set_logger(self, log):
         """
-        Opens a python interactive shell with commands registered with the engine and 
-        arguments passed on the command line available in the environment.
+        If this engine is started from an existing script which 
+        uses a python logger, use this method to connect the logging 
+        output of this engine and all its apps to the existing logger
         """
-
-        symbol_table = globals()
-        symbol_table.update(locals())
-        # give access to list of commands
-        symbol_table["command_names"] = self.commands.keys()
-        # put commands into locals
-        for name, value in self.commands.items():
-            symbol_table[name] = value["callback"]
-
-        # put kwargs into locals
-        symbol_table.update(kwargs)
+        self._log = log
         
-        banner =  "Entering Tank interactive mode.\n"
-        banner += "See 'command_names' variable for a list of app commands registered with this engine."
-        banner += "See 'args' variable for aruments, see 'kwargs' variable for keyword arguments."
-        code.interact(local=symbol_table, banner=banner)
-        return True
-
     @property
     def has_ui(self):
-        """
-        The shell engine never has a UI
-        """
         return self._has_ui
-    
 
     ##########################################################################################
     # logging interfaces
 
     def log_debug(self, msg):
         if self.get_setting("debug_logging", False):
-            sys.stdout.write("DEBUG: %s\n" % msg)
+            if self._log:
+                self._log.debug(msg)
+            else:
+                sys.stdout.write("DEBUG: %s\n" % msg)
     
     def log_info(self, msg):
-        sys.stdout.write("%s\n" % msg)
+        if self._log:
+            self._log.info(msg)
+        else:
+            sys.stdout.write("%s\n" % msg)
         
     def log_warning(self, msg):
-        sys.stderr.write("WARNING: %s\n" % msg)
+        if self._log:
+            self._log.warning(msg)
+        else:
+            sys.stderr.write("WARNING: %s\n" % msg)
     
     def log_error(self, msg):
-        sys.stderr.write("ERROR: %s\n" % msg)
+        if self._log:
+            self._log.error(msg)
+        else:
+            sys.stderr.write("ERROR: %s\n" % msg)
 
     ##########################################################################################
     # pyside / qt
