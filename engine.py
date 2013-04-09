@@ -7,6 +7,7 @@ terminal session.
 """
 
 import sys
+import os
 import code
 
 import tank
@@ -17,11 +18,18 @@ class ShellEngine(Engine):
     """
     An engine for a terminal.    
     """
-
-    def init_engine(self):
+    def __init__(self, *args, **kwargs):
+        # passthrough so we can init stuff
         self._has_ui = False
         self._qt_application = None
         self._log = None
+        super(ShellEngine, self).__init__(*args, **kwargs)
+    
+
+    def init_engine(self):
+        """
+        Init
+        """
 
     def set_logger(self, log):
         """
