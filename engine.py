@@ -47,11 +47,10 @@ class ShellEngine(Engine):
     # logging interfaces
 
     def log_debug(self, msg):
-        if self.get_setting("debug_logging", False):
-            if self._log:
-                self._log.debug(msg)
-            else:
-                sys.stdout.write("DEBUG: %s\n" % msg)
+        if self._log:
+            self._log.debug(msg)
+        elif self.get_setting("debug_logging", False):
+            sys.stdout.write("DEBUG: %s\n" % msg)
     
     def log_info(self, msg):
         if self._log:
