@@ -46,14 +46,6 @@ class ShellEngine(Engine):
         Init
         """
 
-    def set_logger(self, log):
-        """
-        If this engine is started from an existing script which 
-        uses a python logger, use this method to connect the logging 
-        output of this engine and all its apps to the existing logger
-        """
-        self._log = log
-        
     @property
     def has_ui(self):
         return self._has_ui
