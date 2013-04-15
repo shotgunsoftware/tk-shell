@@ -11,6 +11,7 @@ import os
 import code
 
 import tank
+import logging
 from tank.platform import Engine
 
 
@@ -22,7 +23,21 @@ class ShellEngine(Engine):
         # passthrough so we can init stuff
         self._has_ui = False
         self._qt_application = None
-        self._log = None
+        
+        # set up a very basic logger, assuming it will be overridden
+        self._log = logging.getLogger("tank.tk-shell")
+        self._log.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        formatter = logging.Formatter()
+        ch.setFormatter(formatter)
+        self._log.addHandler(ch)
+        
+        if len(args) > 0 and isinstance(args[0], tank.Tank):
+            if hasattr(args[0], "log"):
+                # there is a tank.log on the API instance.
+                # hook this up with our logging
+                self._log = args[0].log
+        
         super(ShellEngine, self).__init__(*args, **kwargs)
     
 
@@ -47,28 +62,16 @@ class ShellEngine(Engine):
     # logging interfaces
 
     def log_debug(self, msg):
-        if self._log:
-            self._log.debug(msg)
-        elif self.get_setting("debug_logging", False):
-            sys.stdout.write("DEBUG: %s\n" % msg)
+        self._log.debug(msg)
     
     def log_info(self, msg):
-        if self._log:
-            self._log.info(msg)
-        else:
-            sys.stdout.write("%s\n" % msg)
+        self._log.info(msg)
         
     def log_warning(self, msg):
-        if self._log:
-            self._log.warning(msg)
-        else:
-            sys.stderr.write("WARNING: %s\n" % msg)
+        self._log.warning(msg)
     
     def log_error(self, msg):
-        if self._log:
-            self._log.error(msg)
-        else:
-            sys.stderr.write("ERROR: %s\n" % msg)
+        self._log.error(msg)
 
     ##########################################################################################
     # pyside / qt
@@ -77,8 +80,6 @@ class ShellEngine(Engine):
         """
         check for pyside then pyqt
         """
-        
-        
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         self._has_ui = False
         
