@@ -85,6 +85,13 @@ class ShellEngine(Engine):
                         QtGui.QDialog.show(self)
                         self.activateWindow()
                         self.raise_()
+
+                    def exec_(self):
+                        self.activateWindow()
+                        self.raise_()
+                        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
+                        QtGui.QDialog.exec_(self)
+                        
                 
                 base["qt_core"] = QtCore
                 base["qt_gui"] = QtGui
@@ -103,6 +110,12 @@ class ShellEngine(Engine):
                         QtGui.QDialog.show(self)
                         self.activateWindow()
                         self.raise_()
+                
+                    def exec_(self):
+                        self.activateWindow()
+                        self.raise_()
+                        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
+                        QtGui.QDialog.exec_(self)
                 
                 
                 # hot patch the library to make it work with pyside code
