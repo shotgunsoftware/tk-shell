@@ -14,7 +14,6 @@ import tank
 import logging
 from tank.platform import Engine
 
-
 class ShellEngine(Engine):
     """
     An engine for a terminal.    
@@ -49,6 +48,16 @@ class ShellEngine(Engine):
     @property
     def has_ui(self):
         return self._has_ui
+
+    ##########################################################################################
+    # command handling
+
+    def execute_command(self, cmd_key):
+        """
+        Executes a given command.
+        """
+        return self.commands[cmd_key]["callback"]()
+
 
     ##########################################################################################
     # logging interfaces
@@ -163,7 +172,7 @@ class ShellEngine(Engine):
             start_app_loop = True
             
         obj = Engine.show_dialog(self, title, bundle, widget_class, *args, **kwargs)
-
+    
         if start_app_loop:
             self._qt_application.exec_()
             # this is a bit weird - we are not returning the dialog object because
