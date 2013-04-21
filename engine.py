@@ -21,7 +21,6 @@ class ShellEngine(Engine):
     def __init__(self, *args, **kwargs):
         # passthrough so we can init stuff
         self._has_ui = False
-        self._qt_application = None
         self._ui_created = False
         
         # set up a very basic logger, assuming it will be overridden
@@ -77,23 +76,23 @@ class ShellEngine(Engine):
             
             # start up our QApp now
             QtGui.QApplication.setStyle("cleanlooks")
-            self._qt_application = QtGui.QApplication([])
+            qt_application = QtGui.QApplication([])
             css_file = os.path.join(self.disk_location, "resources", "dark.css")
             f = open(css_file)
             css = f.read()
             f.close()
-            self._qt_application.setStyleSheet(css) 
+            qt_application.setStyleSheet(css) 
             
             # when the QApp starts, initialize our task code 
             QtCore.QTimer.singleShot(0, t, QtCore.SLOT('run_command()'))
                
             # and ask the main app to exit when the task emits its finished signal
-            t.finished.connect(self._qt_application.quit )
+            t.finished.connect(qt_application.quit )
                
             # start the application loop. This will block the process until the task
             # has completed - this is either triggered by a main window closing or
             # byt the finished signal being called from the task class above.
-            self._qt_application.exec_()
+            qt_application.exec_()
             
 
 
