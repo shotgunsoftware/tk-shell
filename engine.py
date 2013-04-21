@@ -22,6 +22,7 @@ class ShellEngine(Engine):
         # passthrough so we can init stuff
         self._has_ui = False
         self._qt_application = None
+        self._ui_created = False
         
         # set up a very basic logger, assuming it will be overridden
         self._log = logging.getLogger("tank.tk-shell")
@@ -49,6 +50,13 @@ class ShellEngine(Engine):
     def has_ui(self):
         return self._has_ui
 
+    def has_received_ui_creation_requests(self):
+        """
+        returns true if one or more windows have been requested
+        via the show_dialog methods
+        """
+        return self._ui_created
+
     ##########################################################################################
     # command handling
 
@@ -56,7 +64,37 @@ class ShellEngine(Engine):
         """
         Executes a given command.
         """
-        return self.commands[cmd_key]["callback"]()
+        cb = self.commands[cmd_key]["callback"]
+        if not self.has_ui:
+            # QT not available - just run the command straight
+            return cb()
+        else:
+            from tank.platform.qt import QtCore, QtGui
+            
+            # we got QT capabilities. Start a QT app and fire the command into the app
+            tk_shell = self.import_module("tk_shell")
+            t = tk_shell.Task(self, cb)
+            
+            # start up our QApp now
+            QtGui.QApplication.setStyle("cleanlooks")
+            self._qt_application = QtGui.QApplication([])
+            css_file = os.path.join(self.disk_location, "resources", "dark.css")
+            f = open(css_file)
+            css = f.read()
+            f.close()
+            self._qt_application.setStyleSheet(css) 
+            
+            # when the QApp starts, initialize our task code 
+            QtCore.QTimer.singleShot(0, t, QtCore.SLOT('run_command()'))
+               
+            # and ask the main app to exit when the task emits its finished signal
+            t.finished.connect(self._qt_application.quit )
+               
+            # start the application loop. This will block the process until the task
+            # has completed - this is either triggered by a main window closing or
+            # byt the finished signal being called from the task class above.
+            self._qt_application.exec_()
+            
 
 
     ##########################################################################################
@@ -87,6 +125,7 @@ class ShellEngine(Engine):
         if not self._has_ui:
             try:
                 from PySide import QtCore, QtGui
+                import PySide
 
                 # a simple dialog proxy that pushes the window forward
                 class ProxyDialogPySide(QtGui.QDialog):
@@ -98,6 +137,8 @@ class ShellEngine(Engine):
                     def exec_(self):
                         self.activateWindow()
                         self.raise_()
+                        # the trick of activating + raising does not seem to be enough for
+                        # modal dialogs. So force put them on top as well.
                         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
                         QtGui.QDialog.exec_(self)
                         
@@ -106,12 +147,17 @@ class ShellEngine(Engine):
                 base["qt_gui"] = QtGui
                 base["dialog_base"] = ProxyDialogPySide
                 self._has_ui = True
-            except:
-                self.log_debug("Found PySide install present in %s." % QtGui.__file__)
+                self.log_debug("Successfully initialized PySide %s present in %s." % (PySide.__version__, PySide.__file__))
+            except ImportError:
+                pass
+            except Exception, e:
+                self.log_warning("Error setting up pyside. Pyside based UI support will not "
+                                 "be available: %s" % e)
         
         if not self._has_ui:
             try:
                 from PyQt4 import QtCore, QtGui
+                import PyQt4
                 
                 # a simple dialog proxy that pushes the window forward
                 class ProxyDialogPyQt(QtGui.QDialog):
@@ -123,6 +169,8 @@ class ShellEngine(Engine):
                     def exec_(self):
                         self.activateWindow()
                         self.raise_()
+                        # the trick of activating + raising does not seem to be enough for
+                        # modal dialogs. So force put them on top as well.                        
                         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
                         QtGui.QDialog.exec_(self)
                 
@@ -133,8 +181,12 @@ class ShellEngine(Engine):
                 base["qt_gui"] = QtGui
                 base["dialog_base"] = ProxyDialogPyQt
                 self._has_ui = True
-            except:
-                self.log_debug("Found PyQt install present in %s." % QtGui.__file__)
+                self.log_debug("Successfully initialized PyQt %s present in %s." % (PyQt4.__version__, PyQt4.__file__))
+            except ImportError:
+                pass
+            except Exception, e:
+                self.log_warning("Error setting up PyQt. PyQt based UI support will not "
+                                 "be available: %s" % e)
         
         return base
         
@@ -158,31 +210,9 @@ class ShellEngine(Engine):
                            "or PyQt needs to be installed in your system." % title)
             return
         
-        from tank.platform.qt import QtCore, QtGui
+        self._ui_created = True
         
-        start_app_loop = False
-        if self._qt_application is None:
-            QtGui.QApplication.setStyle("cleanlooks")
-            self._qt_application = QtGui.QApplication([])
-            css_file = os.path.join(self.disk_location, "resources", "dark.css")
-            f = open(css_file)
-            css = f.read()
-            f.close()
-            self._qt_application.setStyleSheet(css)        
-            start_app_loop = True
-            
-        obj = Engine.show_dialog(self, title, bundle, widget_class, *args, **kwargs)
-    
-        if start_app_loop:
-            self._qt_application.exec_()
-            # this is a bit weird - we are not returning the dialog object because
-            # at this point the application has already exited
-            return None
-        
-        else:
-            # a dialog was called by a signal or slot
-            # in the qt message world. return its handle
-            return obj
+        return Engine.show_dialog(self, title, bundle, widget_class, *args, **kwargs)    
     
     def show_modal(self, title, bundle, widget_class, *args, **kwargs):
         """
@@ -204,14 +234,9 @@ class ShellEngine(Engine):
                            "or PyQt needs to be installed in your system." % title)
             return
 
-        from tank.platform.qt import QtCore, QtGui        
+        self._ui_created = True
+        
+        return Engine.show_modal(self, title, bundle, widget_class, *args, **kwargs)
 
-        if self._qt_application is None:
-            # no Qapp is running - meaning there are no other dialogs
-            # this is a chicken and egg thing - need to handle this dialog
-            # as a non-modal becuase of dialog.exec() and app.exec()
-            return self.show_dialog(title, bundle, widget_class, *args, **kwargs)
-        else:
-            # qt is running! Just use std base class implementation
-            return Engine.show_modal(self, title, bundle, widget_class, *args, **kwargs)
+
 
