@@ -11,8 +11,11 @@ import os
 import code
 
 import tank
+import inspect
 import logging
+
 from tank.platform import Engine
+from tank import TankError
 
 class ShellEngine(Engine):
     """
@@ -59,20 +62,29 @@ class ShellEngine(Engine):
     ##########################################################################################
     # command handling
 
-    def execute_command(self, cmd_key):
+    def execute_command(self, cmd_key, args):
         """
         Executes a given command.
         """
         cb = self.commands[cmd_key]["callback"]
+        
+        # make sure the number of parameters to the command are correct
+        cb_arg_list = inspect.getargspec(cb)[0]
+        if len(cb_arg_list) > 0 and  cb_arg_list[0] == 'self':
+            cb_arg_list = cb_arg_list[1:]
+            
+        if len(args) != len(cb_arg_list):
+            raise TankError("Cannot run command! Expected command arguments %s" % cb_arg_list)
+        
         if not self.has_ui:
             # QT not available - just run the command straight
-            return cb()
+            return cb(*args)
         else:
             from tank.platform.qt import QtCore, QtGui
             
             # we got QT capabilities. Start a QT app and fire the command into the app
             tk_shell = self.import_module("tk_shell")
-            t = tk_shell.Task(self, cb)
+            t = tk_shell.Task(self, cb, args)
             
             # start up our QApp now
             QtGui.QApplication.setStyle("cleanlooks")

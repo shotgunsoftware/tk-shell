@@ -17,14 +17,15 @@ class Task(QtCore.QObject):
     """
     finished = QtCore.Signal()
 
-    def __init__(self, engine, callback):
+    def __init__(self, engine, callback, args):
         QtCore.QObject.__init__(self)        
         self._callback = callback
+        self._args = args
         self._engine = engine
         
     def run_command(self):
         # execute the callback
-        self._callback()
+        self._callback(*self._args)
 
         # broadcast that we have finished this command
         if not self._engine.has_received_ui_creation_requests():
