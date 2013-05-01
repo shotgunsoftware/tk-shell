@@ -157,8 +157,8 @@ class ShellEngine(Engine):
                 base["qt_core"] = QtCore
                 base["qt_gui"] = QtGui
                 base["dialog_base"] = ProxyDialogPySide
+                self.log_debug("Successfully initialized PySide %s located in %s." % (PySide.__version__, PySide.__file__))
                 self._has_ui = True
-                self.log_debug("Successfully initialized PySide %s present in %s." % (PySide.__version__, PySide.__file__))
             except ImportError:
                 pass
             except Exception, e:
@@ -191,8 +191,8 @@ class ShellEngine(Engine):
                 base["qt_core"] = QtCore
                 base["qt_gui"] = QtGui
                 base["dialog_base"] = ProxyDialogPyQt
+                self.log_debug("Successfully initialized PyQt located in %s." % PyQt4.__file__)
                 self._has_ui = True
-                self.log_debug("Successfully initialized PyQt %s present in %s." % (PyQt4.__version__, PyQt4.__file__))
             except ImportError:
                 pass
             except Exception, e:
