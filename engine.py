@@ -11,6 +11,7 @@ import os
 import code
 
 import tank
+import types
 import inspect
 import logging
 
@@ -130,7 +131,16 @@ class ShellEngine(Engine):
         """
         check for pyside then pyqt
         """
-        base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
+        # proxy class used when QT does not exist on the system.
+        # this will raise an exception when any QT code tries to use it
+        class QTProxy(object):                        
+            def __getattr__(self, name):
+                raise TankError("The shell engine could not find a PyQt or PySide installation "
+                                "in your python system path. Apps using QT will not be able to "
+                                "execute. We recommend that you install PySide if you want to "
+                                "run UI applications in the Shell.")
+        
+        base = {"qt_core": QTProxy(), "qt_gui": QTProxy(), "dialog_base": None}
         self._has_ui = False
         
         if not self._has_ui:
