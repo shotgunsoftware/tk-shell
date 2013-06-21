@@ -18,7 +18,7 @@ requires_shotgun_fields:
 
 # More verbose description of this item 
 display_name: "Shell Engine"
-description: "Tank Support in a Shell"
+description: "Shotgun Support in a Shell"
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
