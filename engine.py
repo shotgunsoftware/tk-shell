@@ -149,6 +149,10 @@ class ShellEngine(Engine):
                 from PySide import QtCore, QtGui
                 import PySide
 
+                # tell QT to interpret C strings as utf-8
+                utf8 = QtCore.QTextCodec.codecForName("utf-8")
+                QtCore.QTextCodec.setCodecForCStrings(utf8)
+
                 # a simple dialog proxy that pushes the window forward
                 class ProxyDialogPySide(QtGui.QDialog):
                     def show(self):
@@ -180,6 +184,10 @@ class ShellEngine(Engine):
             try:
                 from PyQt4 import QtCore, QtGui
                 import PyQt4
+                
+                # tell QT to interpret C strings as utf-8
+                utf8 = QtCore.QTextCodec.codecForName("utf-8")
+                QtCore.QTextCodec.setCodecForCStrings(utf8)                
                 
                 # a simple dialog proxy that pushes the window forward
                 class ProxyDialogPyQt(QtGui.QDialog):
