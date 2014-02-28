@@ -77,12 +77,26 @@ class ShellEngine(Engine):
         cb = self.commands[cmd_key]["callback"]
         
         # make sure the number of parameters to the command are correct
-        cb_arg_list = inspect.getargspec(cb)[0]
-        if len(cb_arg_list) > 0 and  cb_arg_list[0] == 'self':
+        cb_arg_spec = inspect.getargspec(cb)
+        cb_arg_list = cb_arg_spec[0]
+        cb_var_args = cb_arg_spec[1]
+        
+        if hasattr(cb, "__self__"):
+            # first argument to cb will be class instance:
             cb_arg_list = cb_arg_list[1:]
-            
-        if len(args) != len(cb_arg_list):
-            raise TankError("Cannot run command! Expected command arguments %s" % cb_arg_list)
+
+        # ensure the correct/minimum number of arguments have been passed:
+        have_expected_args = False
+        if cb_var_args:
+            have_expected_args = (len(args) >= len(cb_arg_list))
+        else:
+            have_expected_args = (len(args) == len(cb_arg_list)) 
+        
+        if not have_expected_args:
+            expected_args = list(cb_arg_list)
+            if cb_var_args:
+                expected_args.append("*%s" % cb_var_args)
+            raise TankError("Cannot run command! Expected command arguments (%s)" % ", ".join(expected_args))
         
         if not self.has_ui:
             # QT not available - just run the command straight
