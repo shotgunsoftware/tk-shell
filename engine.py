@@ -111,6 +111,7 @@ class ShellEngine(Engine):
             # start up our QApp now
             QtGui.QApplication.setStyle("cleanlooks")
             qt_application = QtGui.QApplication([])
+            qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
             
             # use toolkit's built in std stylesheet            
             qt_application.setStyleSheet( self._get_standard_qt_stylesheet() ) 
