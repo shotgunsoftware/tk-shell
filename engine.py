@@ -169,6 +169,12 @@ class ShellEngine(Engine):
                 from PySide import QtCore, QtGui
                 import PySide
 
+                # Some old versions of PySide don't include version information
+                # so add something here so that we can use PySide.__version__ 
+                # later without having to check!
+                if not hassattr(PySide, "__version__"):
+                    PySide.__version__ = "<unknown>"
+
                 # tell QT to interpret C strings as utf-8
                 utf8 = QtCore.QTextCodec.codecForName("utf-8")
                 QtCore.QTextCodec.setCodecForCStrings(utf8)
@@ -192,7 +198,8 @@ class ShellEngine(Engine):
                 base["qt_core"] = QtCore
                 base["qt_gui"] = QtGui
                 base["dialog_base"] = ProxyDialogPySide
-                self.log_debug("Successfully initialized PySide %s located in %s." % (PySide.__version__, PySide.__file__))
+                self.log_debug("Successfully initialized PySide '%s' located in %s." 
+                               % (PySide.__version__, PySide.__file__))
                 self._has_ui = True
             except ImportError:
                 pass
@@ -232,7 +239,8 @@ class ShellEngine(Engine):
                 base["qt_core"] = QtCore
                 base["qt_gui"] = QtGui
                 base["dialog_base"] = ProxyDialogPyQt
-                self.log_debug("Successfully initialized PyQt %s located in %s." % (QtCore.PYQT_VERSION_STR, PyQt4.__file__))
+                self.log_debug("Successfully initialized PyQt '%s' located in %s." 
+                               % (QtCore.PYQT_VERSION_STR, PyQt4.__file__))
                 self._has_ui = True
             except ImportError:
                 pass
