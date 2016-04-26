@@ -58,6 +58,8 @@ class ShellEngine(Engine):
         """
         Indicates if this engine has a UI. The shell engine will have one only if
         QApplication has been instantiated.
+
+        :returns: True if UI is available, False otherwise.
         """
         # Testing for UI this way allows the tank shell command to show UIs after
         # a QApplication has been created.
