@@ -118,7 +118,8 @@ class ShellEngine(Engine):
             # start up our QApp now
             qt_application = QtGui.QApplication([])
             qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
-
+            self._initialize_dark_look_and_feel()
+            
             # when the QApp starts, initialize our task code 
             QtCore.QTimer.singleShot(0, t.run_command )
                
@@ -254,7 +255,8 @@ class ShellEngine(Engine):
                                  "be available: %s" % e)
         
         return base
-
+        
+        
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a non-modal dialog window in a way suitable for this engine. 
