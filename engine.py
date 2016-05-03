@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -13,12 +13,7 @@ Implements the Terminal Engine in Tank, e.g the a way to run apps inside of a st
 terminal session.
 """
 
-import sys
-import os
-import code
-
 import tank
-import types
 import inspect
 import logging
 
@@ -27,20 +22,16 @@ from tank import TankError
 
 class ShellEngine(Engine):
     """
-    An engine for a terminal.    
+    An engine for a terminal.
     """
     def __init__(self, *args, **kwargs):
         # passthrough so we can init stuff
-        
-        # the has_ui flag indicates that there is an active QApplicaton running and that UI
-        # code can be rendered.
-        self._has_ui = False
-        
-        # the has_qt flag indicates that the QT subsystem is present and can be started 
+
+        # the has_qt flag indicates that the QT subsystem is present and can be started
         self._has_qt = False
-        
+
         self._ui_created = False
-        
+
         # set up a very basic logger, assuming it will be overridden
         self._log = logging.getLogger("tank.tk-shell")
         self._log.setLevel(logging.INFO)
@@ -48,15 +39,14 @@ class ShellEngine(Engine):
         formatter = logging.Formatter()
         ch.setFormatter(formatter)
         self._log.addHandler(ch)
-        
+
         if len(args) > 0 and isinstance(args[0], tank.Tank):
             if hasattr(args[0], "log"):
                 # there is a tank.log on the API instance.
                 # hook this up with our logging
                 self._log = args[0].log
-        
+
         super(ShellEngine, self).__init__(*args, **kwargs)
-    
 
     def init_engine(self):
         """
@@ -65,7 +55,19 @@ class ShellEngine(Engine):
 
     @property
     def has_ui(self):
-        return self._has_ui
+        """
+        Indicates if this engine has a UI. The shell engine will have one only if
+        QApplication has been instantiated.
+
+        :returns: True if UI is available, False otherwise.
+        """
+        # Testing for UI this way allows the tank shell command to show UIs after
+        # a QApplication has been created.
+        if self._has_qt:
+            from tank.platform.qt import QtGui
+            return QtGui.qApp is not None
+        else:
+            return False
 
     def has_received_ui_creation_requests(self):
         """
@@ -119,9 +121,6 @@ class ShellEngine(Engine):
             qt_application = QtGui.QApplication([])
             qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
             self._initialize_dark_look_and_feel()
-            
-            # now we have a working UI!
-            self._has_ui = True
             
             # when the QApp starts, initialize our task code 
             QtCore.QTimer.singleShot(0, t.run_command )
