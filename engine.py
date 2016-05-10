@@ -77,6 +77,16 @@ class ShellEngine(Engine):
         return self._ui_created
 
     ##########################################################################################
+    # properties
+
+    @property
+    def context_change_allowed(self):
+        """
+        Allows on-the-fly context changing.
+        """
+        return True
+
+    ##########################################################################################
     # command handling
 
     def execute_command(self, cmd_key, args):
