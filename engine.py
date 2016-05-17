@@ -77,6 +77,16 @@ class ShellEngine(Engine):
         return self._ui_created
 
     ##########################################################################################
+    # properties
+
+    @property
+    def context_change_allowed(self):
+        """
+        Allows on-the-fly context changing.
+        """
+        return True
+
+    ##########################################################################################
     # command handling
 
     def execute_command(self, cmd_key, args):
@@ -162,7 +172,12 @@ class ShellEngine(Engine):
                                      "or PySide installation in your python system path. We "
                                      "recommend that you install PySide if you want to "
                                      "run UI applications from the Shell.")
-        return {"qt_core": QTProxy(), "qt_gui": QTProxy(), "dialog_base": None}
+        return {
+            "qt_core": QTProxy(),
+            "qt_gui": QTProxy(),
+            "qt_widgets": QTProxy(),
+            "dialog_base": None
+        }
 
     def _define_qt_base(self):
         """
@@ -170,6 +185,7 @@ class ShellEngine(Engine):
         """
         base = Engine._define_qt_base(self)
 
+        # If QtCore hasn't been set, then nothing was.
         if base["qt_core"] is None:
             return self._define_unavailable_base()
 
@@ -200,6 +216,7 @@ class ShellEngine(Engine):
             base["dialog_base"] = ProxyDialog
 
             self._has_qt = True
+            # Strip the name since PySide has a \n at the end for some reason.
             self.log_debug("Successfully initialized %s '%s' located in %s." %
                            (QtWrapper.__name__.strip(), QtWrapper.__version__, QtWrapper.__file__))
             return base
