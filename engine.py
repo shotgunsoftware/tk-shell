@@ -130,6 +130,7 @@ class ShellEngine(Engine):
             # start up our QApp now, if none is already running
             qt_application = None
             if not QtGui.QApplication.instance():
+                QtGui.QApplication.setLibraryPaths([])
                 qt_application = QtGui.QApplication([])
                 qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
                 self._initialize_dark_look_and_feel()
