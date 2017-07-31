@@ -16,6 +16,8 @@ terminal session.
 import tank
 import inspect
 import logging
+import sys
+import os
 
 from tank.platform import Engine
 from tank import TankError
@@ -130,6 +132,12 @@ class ShellEngine(Engine):
             # start up our QApp now, if none is already running
             qt_application = None
             if not QtGui.qApp:
+                # We need to clear Qt library paths on Linux if KDE is the active environment.
+                # This resolves issues with mismatched Qt libraries between the OS and the
+                # application being launched if it is a DCC that comes with a bundled Qt.
+                if sys.platform == "linux2" and os.environ.get("KDE_FULL_SESSION") is not None:
+                    QtGui.QApplication.setLibraryPaths([])
+
                 qt_application = QtGui.QApplication([])
                 qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
                 self._initialize_dark_look_and_feel()
