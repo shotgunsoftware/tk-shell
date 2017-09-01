@@ -18,6 +18,7 @@ import inspect
 import logging
 import sys
 import os
+import platform
 
 from tank.platform import Engine
 from tank import TankError
@@ -172,6 +173,27 @@ class ShellEngine(Engine):
     
     def log_error(self, msg):
         self._log.error(msg)
+
+    ##########################################################################################
+    # metrics
+
+    @property
+    def host_info(self):
+        """
+        Returns information about the application hosting this engine.
+        
+        Returns information about the Python interpreter.
+
+        :returns: A :class:`tank.platform.HostInfo` instance.
+        """
+        # We defer importing HostInfo to the point where tk-core will call this
+        # method, so we don't cause problems with earlier tk-core releases which
+        # don't support it yet.
+        from tank.platform import HostInfo
+        return HostInfo(
+            "Python",
+            platform.python_version(),
+        )
 
     ##########################################################################################
     # pyside / qt
