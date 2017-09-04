@@ -184,13 +184,9 @@ class ShellEngine(Engine):
         
         Returns information about the Python interpreter.
 
-        :returns: A :class:`tank.platform.HostInfo` instance.
+        :returns: A (name, release) tuple.
         """
-        # We defer importing HostInfo to the point where tk-core will call this
-        # method, so we don't cause problems with earlier tk-core releases which
-        # don't support it yet.
-        from tank.platform import HostInfo
-        return HostInfo(
+        return (
             "Python",
             platform.python_version(),
         )
