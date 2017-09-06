@@ -182,14 +182,12 @@ class ShellEngine(Engine):
         """
         Returns information about the application hosting this engine.
         
-        Returns information about the Python interpreter.
-
-        :returns: A (name, release) tuple.
+        :returns: A {"name": "Python", "version": Python version} dictionary.
         """
-        return (
-            "Python",
-            platform.python_version(),
-        )
+        return {
+            "name": "Python",
+            "version": platform.python_version(),
+        }
 
     ##########################################################################################
     # pyside / qt
