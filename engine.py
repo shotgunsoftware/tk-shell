@@ -18,6 +18,7 @@ import inspect
 import logging
 import sys
 import os
+import platform
 
 from tank.platform import Engine
 from tank import TankError
@@ -172,6 +173,21 @@ class ShellEngine(Engine):
     
     def log_error(self, msg):
         self._log.error(msg)
+
+    ##########################################################################################
+    # metrics
+
+    @property
+    def host_info(self):
+        """
+        Returns information about the application hosting this engine.
+        
+        :returns: A {"name": "Python", "version": Python version} dictionary.
+        """
+        return {
+            "name": "Python",
+            "version": platform.python_version(),
+        }
 
     ##########################################################################################
     # pyside / qt
