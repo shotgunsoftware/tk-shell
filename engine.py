@@ -16,6 +16,9 @@ terminal session.
 import tank
 import inspect
 import logging
+import sys
+import os
+import platform
 
 from tank.platform import Engine
 from tank import TankError
@@ -122,9 +125,17 @@ class ShellEngine(Engine):
             return cb(*args)
         else:
             from tank.platform.qt import QtCore, QtGui
+            
             # start up our QApp now
             qt_application = QtGui.QApplication([])
             qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
+
+            if not QtGui.qApp:
+                # We need to clear Qt library paths on Linux if KDE is the active environment.
+                # This resolves issues with mismatched Qt libraries between the OS and the
+                # application being launched if it is a DCC that comes with a bundled Qt.
+                if sys.platform == "linux2" and os.environ.get("KDE_FULL_SESSION") is not None:
+                    QtGui.QApplication.setLibraryPaths([])
 
             # we got QT capabilities. Start a QT app and fire the command into the app
             tk_shell = self.import_module("tk_shell")
@@ -143,6 +154,21 @@ class ShellEngine(Engine):
             qt_application.exec_()
             
 
+            # if we didn't start the QApplication here, let the responsability
+            # to run the exec loop and quit to the initial creator of the QApplication
+            if qt_application:
+                # when the QApp starts, initialize our task code
+                QtCore.QTimer.singleShot(0, t.run_command )
+                # and ask the main app to exit when the task emits its finished signal
+                t.finished.connect(qt_application.quit)
+
+                # start the application loop. This will block the process until the task
+                # has completed - this is either triggered by a main window closing or
+                # byt the finished signal being called from the task class above.
+                qt_application.exec_()
+            else:
+                # we can run the command now, as the QApp is already started
+                t.run_command()
 
     ##########################################################################################
     # logging interfaces
@@ -160,7 +186,22 @@ class ShellEngine(Engine):
         self._log.error(msg)
 
     ##########################################################################################
-    # qt
+    # metrics
+
+    @property
+    def host_info(self):
+        """
+        Returns information about the application hosting this engine.
+        
+        :returns: A {"name": "Python", "version": Python version} dictionary.
+        """
+        return {
+            "name": "Python",
+            "version": platform.python_version(),
+        }
+
+    ##########################################################################################
+    # pyside / qt
 
     def _define_unavailable_base(self):
         # proxy class used when QT does not exist on the system.
