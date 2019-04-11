@@ -152,13 +152,12 @@ class ShellEngine(Engine):
             # has completed - this is either triggered by a main window closing or
             # byt the finished signal being called from the task class above.
             qt_application.exec_()
-            
 
             # if we didn't start the QApplication here, let the responsability
             # to run the exec loop and quit to the initial creator of the QApplication
             if qt_application:
                 # when the QApp starts, initialize our task code
-                QtCore.QTimer.singleShot(0, t.run_command )
+                QtCore.QTimer.singleShot(0, t.run_command)
                 # and ask the main app to exit when the task emits its finished signal
                 t.finished.connect(qt_application.quit)
 
