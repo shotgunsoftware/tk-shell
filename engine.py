@@ -127,10 +127,12 @@ class ShellEngine(Engine):
         else:
             from tank.platform.qt import QtCore, QtGui
 
-            # start up our QApp now
-            qt_application = QtGui.QApplication([])
-            qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
+            # we got QT capabilities. Start a QT app and fire the command into the app
+            tk_shell = self.import_module("tk_shell")
+            t = tk_shell.Task(self, cb, args)
 
+            # start up our QApp now, if none is already running
+            qt_application = None
             if not QtGui.qApp:
                 # We need to clear Qt library paths on Linux if KDE is the active environment.
                 # This resolves issues with mismatched Qt libraries between the OS and the
@@ -138,21 +140,10 @@ class ShellEngine(Engine):
                 if sys.platform == "linux2" and os.environ.get("KDE_FULL_SESSION") is not None:
                     QtGui.QApplication.setLibraryPaths([])
 
-            # we got QT capabilities. Start a QT app and fire the command into the app
-            tk_shell = self.import_module("tk_shell")
-            t = tk_shell.Task(self, cb, args)
-            self._initialize_dark_look_and_feel()
-
-            # when the QApp starts, initialize our task code
-            QtCore.QTimer.singleShot(0, t.run_command)
-
-            # and ask the main app to exit when the task emits its finished signal
-            t.finished.connect(qt_application.quit)
-
-            # start the application loop. This will block the process until the task
-            # has completed - this is either triggered by a main window closing or
-            # byt the finished signal being called from the task class above.
-            qt_application.exec_()
+                # start up our QApp now
+                qt_application = QtGui.QApplication([])
+                qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
+                self._initialize_dark_look_and_feel()
 
             # if we didn't start the QApplication here, let the responsability
             # to run the exec loop and quit to the initial creator of the QApplication
