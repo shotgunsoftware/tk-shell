@@ -69,7 +69,7 @@ class ShellEngine(Engine):
         # a QApplication has been created.
         if self._has_qt:
             from tank.platform.qt import QtGui
-            return QtGui.qApp is not None
+            return QtGui.QApplication.instance() is not None
         else:
             return False
 
@@ -133,7 +133,7 @@ class ShellEngine(Engine):
 
             # start up our QApp now, if none is already running
             qt_application = None
-            if not QtGui.qApp:
+            if not QtGui.QApplication.instance():
                 # We need to clear Qt library paths on Linux if KDE is the active environment.
                 # This resolves issues with mismatched Qt libraries between the OS and the
                 # application being launched if it is a DCC that comes with a bundled Qt.
