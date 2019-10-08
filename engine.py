@@ -63,14 +63,13 @@ class ShellEngine(Engine):
         Init
         """
 
-    def destroy(self):
+    def destroy_engine(self):
         """
         Called when engine is destroyed.
 
         This will remove the logger.
         """
         self._cleanup_logger()
-        super(ShellEngine, self).destroy()
 
     def __del__(self):
         """
