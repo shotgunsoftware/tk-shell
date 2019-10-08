@@ -73,15 +73,16 @@ class ShellEngine(Engine):
 
     def __del__(self):
         """
+        Called when the object is garbaged-collected.
         """
-        # If the engine is not properly finalized, still remove the stream logger
-        # if available. This is important during testing, which the logger can be
-        # installed and uninstalled multiple times.
+        # If the destroy_engine has not been called (in a failed test for example), we still
+        # need to remove the stream logger if available. Otherwise subsequent tests will
+        # have more and more loggers added to tank.tk-shell.
         self._cleanup_logger()
 
     def _cleanup_logger(self):
         """
-        Removes the stream handler if it exists.
+        Removes the stream handler if it exists from the current logger.
         """
         if self._stream_handler is not None:
             self._log.removeHandler(self._stream_handler)
