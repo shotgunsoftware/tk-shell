@@ -1,0 +1,13 @@
+# this is a comment at the top of the file
+engines:
+  # this is a comment after the engines section
+  tk-shell:
+    apps:
+      test_app:
+        location:
+          type: path
+          path: "{CONFIG_FOLDER}/bundles/test_app"
+    debug_logging: False
+    location:
+      type: path
+      path: $SHOTGUN_CURRENT_REPO_ROOT
