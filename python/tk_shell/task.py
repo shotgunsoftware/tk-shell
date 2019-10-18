@@ -35,7 +35,7 @@ class Task(QtCore.QObject):
             # execute the callback
             self._callback(*self._args)
             
-        except tank.TankError, e:
+        except tank.TankError as e:
             self._engine.log_error(str(e))
 
         except KeyboardInterrupt:
