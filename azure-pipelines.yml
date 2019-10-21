@@ -4,7 +4,7 @@ resources:
     - repository: templates
       type: github
       name: shotgunsoftware/tk-ci-tools
-      ref: refs/heads/add_black
+      ref: refs/heads/master
       endpoint: shotgunsoftware
 
 # Configures CI to be triggered by changes to any branches and on tag creation.
