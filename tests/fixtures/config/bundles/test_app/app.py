@@ -46,4 +46,5 @@ class TestApp(sgtk.platform.Application):
         if auto_dismiss:
             sgtk.platform.qt.QtCore.QTimer.singleShot(500, widget.button.click)
 
+        # Advertise the dismiss button to tests can close the dialog easily.
         self.dismiss_button = widget.button
