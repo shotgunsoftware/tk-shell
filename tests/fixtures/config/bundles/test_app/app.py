@@ -26,9 +26,6 @@ class TestApp(sgtk.platform.Application):
 
     def init_app(self):
         self.dismiss_button = None
-        if not self.engine.has_ui:
-            return
-
         self.engine.register_command("test_app", self._show_app)
 
     def _show_app(self, auto_dismiss):
