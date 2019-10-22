@@ -1,4 +1,3 @@
-[![VFX Platform](https://img.shields.io/badge/vfxplatform-2018-yellow.svg)](http://www.vfxplatform.com/)
 [![Python 2.6 2.7 3.7](https://img.shields.io/badge/python-2.6%20%7C%202.7%20%7C%203.7-blue.svg)](https://www.python.org/)
 [![Build Status](https://dev.azure.com/shotgun-ecosystem/Toolkit/_apis/build/status/Engines/tk-shell?branchName=SG-13302_python_3)](https://dev.azure.com/shotgun-ecosystem/Toolkit/_build/latest?definitionId=12&branchName=SG-13302_python_3)
 [![codecov](https://codecov.io/gh/shotgunsoftware/tk-shell/branch/SG-13302_python_3/graph/badge.svg)](https://codecov.io/gh/shotgunsoftware/tk-shell)
