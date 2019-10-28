@@ -218,7 +218,9 @@ class ShellEngine(Engine):
             QtCore = base["qt_core"]
             QtGui = base["qt_gui"]
 
-            # tell QT4 to interpret C strings as utf-8
+            # Tell QT4 to interpret C strings as utf-8.
+            # On PySide2 we patch QTextCodec with a do-nothing stub
+            # for setCodecForCStrings(), so this will have no effect.
             utf8 = QtCore.QTextCodec.codecForName("utf-8")
             QtCore.QTextCodec.setCodecForCStrings(utf8)
 
