@@ -35,19 +35,26 @@ class ShellEngine(Engine):
 
         self._ui_created = False
 
-        # set up a very basic logger, assuming it will be overridden
-        self._log = logging.getLogger("tank.tk-shell")
-        self._log.setLevel(logging.INFO)
-        ch = logging.StreamHandler()
-        formatter = logging.Formatter()
-        ch.setFormatter(formatter)
-        self._log.addHandler(ch)
+        self._log = None
+        self._stream_handler = None
 
+        # Check if the Toolkit instance has a log and if so, we'll use it.
         if len(args) > 0 and isinstance(args[0], tank.Tank):
             if hasattr(args[0], "log"):
                 # there is a tank.log on the API instance.
                 # hook this up with our logging
                 self._log = args[0].log
+
+        # If no log was found, we'll install our own handler so things
+        # get printed to the console.
+        if self._log is None:
+            # set up a very basic logger, assuming it will be overridden
+            self._log = logging.getLogger("tank.tk-shell")
+            self._log.setLevel(logging.INFO)
+            self._stream_handler = logging.StreamHandler()
+            formatter = logging.Formatter()
+            self._stream_handler.setFormatter(formatter)
+            self._log.addHandler(self._stream_handler)
 
         super(ShellEngine, self).__init__(*args, **kwargs)
 
@@ -55,6 +62,31 @@ class ShellEngine(Engine):
         """
         Init
         """
+
+    def destroy_engine(self):
+        """
+        Called when engine is destroyed.
+
+        This will remove the logger.
+        """
+        self._cleanup_logger()
+
+    def __del__(self):
+        """
+        Called when the object is garbaged-collected.
+        """
+        # If the destroy_engine has not been called (in a failed test for example), we still
+        # need to remove the stream logger if available. Otherwise subsequent tests will
+        # have more and more loggers added to tank.tk-shell.
+        self._cleanup_logger()
+
+    def _cleanup_logger(self):
+        """
+        Removes the stream handler if it exists from the current logger.
+        """
+        if self._stream_handler is not None:
+            self._log.removeHandler(self._stream_handler)
+            self._stream_handler = None
 
     @property
     def has_ui(self):
