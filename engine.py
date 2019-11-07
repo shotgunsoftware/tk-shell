@@ -48,7 +48,6 @@ class ShellEngine(Engine):
         # If no log was found, we'll install our own handler so things
         # get printed to the console.
         if self._log is None:
-            # set up a very basic logger, assuming it will be overridden
             self._log = logging.getLogger("tank.tk-shell")
             self._log.setLevel(logging.INFO)
             self._stream_handler = logging.StreamHandler()
