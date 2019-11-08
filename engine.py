@@ -20,6 +20,7 @@ import sys
 import os
 import platform
 
+from tank_vendor.shotgun_api3.lib import six
 from tank.platform import Engine
 from tank import TankError
 
@@ -102,8 +103,10 @@ class ShellEngine(Engine):
         """
         cb = self.commands[cmd_key]["callback"]
 
+        getargspec = inspect.getargspec if six.PY2 else inspect.getfullargspec
+
         # make sure the number of parameters to the command are correct
-        cb_arg_spec = inspect.getargspec(cb)
+        cb_arg_spec = getargspec(cb)
         cb_arg_list = cb_arg_spec[0]
         cb_var_args = cb_arg_spec[1]
 
