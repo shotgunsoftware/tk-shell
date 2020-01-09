@@ -148,7 +148,7 @@ class ShellEngine(Engine):
                 # between the OS and the application being launched if it is a DCC
                 # that comes with a bundled Qt.
                 if (
-                    sys.platform == "linux2"
+                    tank.util.is_linux()
                     and os.environ.get("KDE_FULL_SESSION") is not None
                 ):
                     QtGui.QApplication.setLibraryPaths([])
