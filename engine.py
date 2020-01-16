@@ -20,7 +20,7 @@ import sys
 import os
 import platform
 
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 from tank.platform import Engine
 from tank import TankError
 
