@@ -174,7 +174,6 @@ class ShellEngine(Engine):
 
             # start up our QApp now, if none is already running
             qt_application = None
-
             if not QtGui.QApplication.instance():
                 # We need to clear Qt library paths on Linux if KDE is the active environment.
                 # This resolves issues with mismatched Qt libraries between the OS and the
@@ -230,9 +229,12 @@ class ShellEngine(Engine):
 
         :returns: A {"name": "Python", "version": Python version} dictionary.
         """
-        return {"name": "Python", "version": platform.python_version()}
+        return {
+            "name": "Python",
+            "version": platform.python_version(),
+        }
 
-    ###################################################################################
+    ##########################################################################################
     # PySide / QT
 
     def _define_qt_base(self):
@@ -249,10 +251,9 @@ class ShellEngine(Engine):
             class QTProxy(object):
                 def __getattr__(self, name):
                     raise tank.TankError(
-                        "The Shotgun Toolkit App you are trying to execute requires "
-                        "a full QT environment in order to render its UI. A valid "
-                        "PySide2/PySide/PyQt5/PyQt4 installation could not be found "
-                        "in your python system path."
+                        "The Shotgun Toolkit App you are trying to execute requires a full QT "
+                        "environment in order to render its UI. A valid PySide2/PySide/PyQt "
+                        "installation could not be found in your python system path."
                     )
 
             base = {"qt_core": QTProxy(), "qt_gui": QTProxy(), "dialog_base": None}
