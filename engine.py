@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Implements the Terminal Engine in Tank, e.g the a way to run apps inside of a standard python
-terminal session.
+Implements the Terminal Engine in Tank, e.g the a way to run apps inside of a
+standard python terminal session.
 """
 
 import tank
@@ -20,13 +20,16 @@ import sys
 import os
 import platform
 
+from tank_vendor import six
 from tank.platform import Engine
 from tank import TankError
+
 
 class ShellEngine(Engine):
     """
     An engine for a terminal.
     """
+
     def __init__(self, *args, **kwargs):
         # passthrough so we can init stuff
 
@@ -96,10 +99,12 @@ class ShellEngine(Engine):
 
         :returns: True if UI is available, False otherwise.
         """
-        # Testing for UI this way allows the tank shell command to show UIs after
+        # Testing for UI this way allows the tank shell command to show UIs afte45
+
         # a QApplication has been created.
         if self._has_qt:
             from tank.platform.qt import QtGui
+
             return QtGui.QApplication.instance() is not None
         else:
             return False
@@ -111,7 +116,7 @@ class ShellEngine(Engine):
         """
         return self._ui_created
 
-    ##########################################################################################
+    ###################################################################################
     # properties
 
     @property
@@ -121,7 +126,7 @@ class ShellEngine(Engine):
         """
         return True
 
-    ##########################################################################################
+    ###################################################################################
     # command handling
 
     def execute_command(self, cmd_key, args):
@@ -129,12 +134,14 @@ class ShellEngine(Engine):
         Executes a given command.
         """
         cb = self.commands[cmd_key]["callback"]
-        
+
+        getargspec = inspect.getargspec if six.PY2 else inspect.getfullargspec
+
         # make sure the number of parameters to the command are correct
-        cb_arg_spec = inspect.getargspec(cb)
+        cb_arg_spec = getargspec(cb)
         cb_arg_list = cb_arg_spec[0]
         cb_var_args = cb_arg_spec[1]
-        
+
         if hasattr(cb, "__self__"):
             # first argument to cb will be class instance:
             cb_arg_list = cb_arg_list[1:]
@@ -142,33 +149,39 @@ class ShellEngine(Engine):
         # ensure the correct/minimum number of arguments have been passed:
         have_expected_args = False
         if cb_var_args:
-            have_expected_args = (len(args) >= len(cb_arg_list))
+            have_expected_args = len(args) >= len(cb_arg_list)
         else:
-            have_expected_args = (len(args) == len(cb_arg_list)) 
-        
+            have_expected_args = len(args) == len(cb_arg_list)
+
         if not have_expected_args:
             expected_args = list(cb_arg_list)
             if cb_var_args:
                 expected_args.append("*%s" % cb_var_args)
-            raise TankError("Cannot run command! Expected command arguments (%s)" % ", ".join(expected_args))
-        
+            raise TankError(
+                "Cannot run command! Expected command arguments (%s)"
+                % ", ".join(expected_args)
+            )
+
         if not self._has_qt:
             # QT not available - just run the command straight
             return cb(*args)
         else:
             from tank.platform.qt import QtCore, QtGui
-            
+
             # we got QT capabilities. Start a QT app and fire the command into the app
             tk_shell = self.import_module("tk_shell")
             t = tk_shell.Task(self, cb, args)
-            
+
             # start up our QApp now, if none is already running
             qt_application = None
             if not QtGui.QApplication.instance():
                 # We need to clear Qt library paths on Linux if KDE is the active environment.
                 # This resolves issues with mismatched Qt libraries between the OS and the
                 # application being launched if it is a DCC that comes with a bundled Qt.
-                if sys.platform == "linux2" and os.environ.get("KDE_FULL_SESSION") is not None:
+                if (
+                    tank.util.is_linux()
+                    and os.environ.get("KDE_FULL_SESSION") is not None
+                ):
                     QtGui.QApplication.setLibraryPaths([])
 
                 qt_application = QtGui.QApplication([])
@@ -179,7 +192,7 @@ class ShellEngine(Engine):
             # to run the exec loop and quit to the initial creator of the QApplication
             if qt_application:
                 # when the QApp starts, initialize our task code
-                QtCore.QTimer.singleShot(0, t.run_command )
+                QtCore.QTimer.singleShot(0, t.run_command)
                 # and ask the main app to exit when the task emits its finished signal
                 t.finished.connect(qt_application.quit)
 
@@ -191,29 +204,29 @@ class ShellEngine(Engine):
                 # we can run the command now, as the QApp is already started
                 t.run_command()
 
-    ##########################################################################################
+    ###################################################################################
     # logging interfaces
 
     def log_debug(self, msg):
         self._log.debug(msg)
-    
+
     def log_info(self, msg):
         self._log.info(msg)
-        
+
     def log_warning(self, msg):
         self._log.warning(msg)
-    
+
     def log_error(self, msg):
         self._log.error(msg)
 
-    ##########################################################################################
+    ###################################################################################
     # metrics
 
     @property
     def host_info(self):
         """
         Returns information about the application hosting this engine.
-        
+
         :returns: A {"name": "Python", "version": Python version} dictionary.
         """
         return {
@@ -223,7 +236,7 @@ class ShellEngine(Engine):
 
     ##########################################################################################
     # PySide / QT
-    
+
     def _define_qt_base(self):
         """
         Define the QT environment.
@@ -268,7 +281,9 @@ class ShellEngine(Engine):
                     self.raise_()
                     # the trick of activating + raising does not seem to be enough for
                     # modal dialogs. So force put them on top as well.
-                    self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
+                    self.setWindowFlags(
+                        QtCore.Qt.WindowStaysOnTopHint | self.windowFlags()
+                    )
                     return QtGui.QDialog.exec_(self)
 
             base["dialog_base"] = ProxyDialogPyQt
@@ -278,54 +293,61 @@ class ShellEngine(Engine):
                 self._has_ui = True
 
         return base
-        
-        
+
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Shows a non-modal dialog window in a way suitable for this engine. 
+        Shows a non-modal dialog window in a way suitable for this engine.
         The engine will attempt to parent the dialog nicely to the host application.
-        
+
         :param title: The title of the window
-        :param bundle: The app, engine or framework object that is associated with this window
-        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        
-        Additional parameters specified will be passed through to the widget_class constructor.
-        
+        :param bundle: The app, engine or framework object that is associated with
+            this window
+        :param widget_class: The class of the UI to be constructed. This must derive
+            from QWidget.
+
+        Additional parameters specified will be passed through to the widget_class
+            constructor.
+
         :returns: the created widget_class instance
         """
         if not self._has_qt:
-            self.log_error("Cannot show dialog %s! No QT support appears to exist in this engine. "
-                           "In order for the shell engine to run UI based apps, either pyside "
-                           "or PyQt needs to be installed in your system." % title)
+            self.log_error(
+                "Cannot show dialog %s! No QT support appears to exist in this engine. "
+                "In order for the shell engine to run UI based apps, either pyside "
+                "or PyQt needs to be installed in your system." % title
+            )
             return
-        
+
         self._ui_created = True
-        
-        return Engine.show_dialog(self, title, bundle, widget_class, *args, **kwargs)    
-    
+
+        return Engine.show_dialog(self, title, bundle, widget_class, *args, **kwargs)
+
     def show_modal(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
-        integrate it as seamlessly as possible into the host application. This call is blocking 
-        until the user closes the dialog.
-        
-        :param title: The title of the window
-        :param bundle: The app, engine or framework object that is associated with this window
-        :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        
-        Additional parameters specified will be passed through to the widget_class constructor.
+        Shows a modal dialog window in a way suitable for this engine. The engine
+        will attempt to integrate it as seamlessly as possible into the host
+        application. This call is blocking until the user closes the dialog.
 
-        :returns: (a standard QT dialog status return code, the created widget_class instance)
+        :param title: The title of the window
+        :param bundle: The app, engine or framework object that is associated with
+            this window
+        :param widget_class: The class of the UI to be constructed. This must derive
+            from QWidget.
+
+        Additional parameters specified will be passed through to the widget_class
+            constructor.
+
+        :returns: (a standard QT dialog status return code, the created widget_class
+            instance)
         """
         if not self._has_qt:
-            self.log_error("Cannot show dialog %s! No QT support appears to exist in this engine. "
-                           "In order for the shell engine to run UI based apps, either pyside "
-                           "or PyQt needs to be installed in your system." % title)
+            self.log_error(
+                "Cannot show dialog %s! No QT support appears to exist in this engine. "
+                "In order for the shell engine to run UI based apps, either pyside "
+                "or PyQt needs to be installed in your system." % title
+            )
             return
 
         self._ui_created = True
-        
+
         return Engine.show_modal(self, title, bundle, widget_class, *args, **kwargs)
-
-
-
