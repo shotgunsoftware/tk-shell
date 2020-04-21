@@ -166,13 +166,7 @@ class ShellEngine(Engine):
             # QT not available - just run the command straight
             return cb(*args)
         else:
-            # We are using the QtImporter rather than the sgtk.platform.qt so that we
-            # can check the Qt version further down.
-            from sgtk.util.qt_importer import QtImporter
-
-            importer = QtImporter()
-            QtCore = importer.QtCore
-            QtGui = importer.QtGui
+            from sgtk.platform.qt import QtCore, QtGui
 
             # we got QT capabilities. Start a QT app and fire the command into the app
             tk_shell = self.import_module("tk_shell")
@@ -184,10 +178,11 @@ class ShellEngine(Engine):
                 # We need to clear Qt library paths on Linux if KDE is the active environment.
                 # This resolves issues with mismatched Qt libraries between the OS and the
                 # application being launched if it is a DCC that comes with a bundled Qt.
+                # It appears to only need to be fixed in PySide (1), PySide2 is fine.
                 if (
                     tank.util.is_linux()
                     and os.environ.get("KDE_FULL_SESSION") is not None
-                    and importer.qt_version_tuple[0] == 4
+                    and QtCore.__version_info__[0] == 4
                 ):
 
                     QtGui.QApplication.setLibraryPaths([])
