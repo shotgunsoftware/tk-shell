@@ -169,6 +169,7 @@ class ShellEngine(Engine):
             # We are using the QtImporter rather than the sgtk.platform.qt so that we
             # can check the Qt version further down.
             from sgtk.util.qt_importer import QtImporter
+
             importer = QtImporter()
             QtCore = importer.QtCore
             QtGui = importer.QtGui
