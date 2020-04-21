@@ -186,7 +186,7 @@ class ShellEngine(Engine):
                 if (
                     tank.util.is_linux()
                     and os.environ.get("KDE_FULL_SESSION") is not None
-                    and importer.qt_version_tuple[0] == 4:
+                    and importer.qt_version_tuple[0] == 4
                 ):
 
                     QtGui.QApplication.setLibraryPaths([])
