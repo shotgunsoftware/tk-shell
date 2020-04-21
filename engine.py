@@ -166,7 +166,12 @@ class ShellEngine(Engine):
             # QT not available - just run the command straight
             return cb(*args)
         else:
-            from tank.platform.qt import QtCore, QtGui
+            # We are using the QtImporter rather than the sgtk.platform.qt so that we
+            # can check the Qt version further down.
+            from sgtk.util.qt_importer import QtImporter
+            importer = QtImporter()
+            QtCore = importer.QtCore
+            QtGui = importer.QtGui
 
             # we got QT capabilities. Start a QT app and fire the command into the app
             tk_shell = self.import_module("tk_shell")
@@ -181,14 +186,16 @@ class ShellEngine(Engine):
                 if (
                     tank.util.is_linux()
                     and os.environ.get("KDE_FULL_SESSION") is not None
+                    and importer.qt_version_tuple[0] == 4:
                 ):
+
                     QtGui.QApplication.setLibraryPaths([])
 
                 qt_application = QtGui.QApplication([])
                 qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
                 self._initialize_dark_look_and_feel()
 
-            # if we didn't start the QApplication here, let the responsability
+            # if we didn't start the QApplication here, leave the responsibility
             # to run the exec loop and quit to the initial creator of the QApplication
             if qt_application:
                 # when the QApp starts, initialize our task code
