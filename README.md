@@ -6,7 +6,7 @@
 
 
 ## Documentation
-This repository is a part of the Shotgun Pipeline Toolkit.
+This repository is a part of the ShotGrid Pipeline Toolkit.
 
 - For more information about this app and for release notes, *see the wiki section*.
 - For general information and documentation, click here: https://developer.shotgridsoftware.com/d587be80/?title=Integrations+User+Guide
