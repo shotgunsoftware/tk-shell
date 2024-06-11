@@ -187,9 +187,11 @@ class ShellEngine(Engine):
 
                     QtGui.QApplication.setLibraryPaths([])
 
-                print("Init Qt App", QtCore.qVersion())
+                print()
+                print("tk-shell - Init Qt App", QtCore.qVersion())
+                print()
                 if QtCore.qVersion()[0] == "5":
-                    QtGui.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+                    QtCore.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
 
                 qt_application = QtGui.QApplication([])
                 qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
