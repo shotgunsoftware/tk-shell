@@ -175,6 +175,10 @@ class ShellEngine(Engine):
             # start up our QApp now, if none is already running
             qt_application = None
             if not QtGui.QApplication.instance():
+                # Enable High DPI support in Qt5 (default enabled in Qt6)
+                if QtCore.qVersion()[0] == "5":
+                    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+
                 qt_application = QtGui.QApplication([])
                 qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
                 self._initialize_dark_look_and_feel()
