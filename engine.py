@@ -188,7 +188,9 @@ class ShellEngine(Engine):
                     elif "QT_SCREEN_SCALE_FACTORS" in os.environ:
                         pass
                     else:
-                        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+                        QtCore.QCoreApplication.setAttribute(
+                            QtCore.Qt.AA_EnableHighDpiScaling
+                        )
 
                 qt_application = QtGui.QApplication([])
                 qt_application.setWindowIcon(QtGui.QIcon(self.icon_256))
