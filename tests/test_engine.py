@@ -23,7 +23,7 @@ class TestShowDialog(TankTestBase):
         """
         Prepares the engine and makes sure Qt is ready.
         """
-        super(TestShowDialog, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         context = sgtk.Context(self.tk)
@@ -36,7 +36,7 @@ class TestShowDialog(TankTestBase):
         Tears down the engine and everything else from the base class.
         """
         self.engine.destroy()
-        super(TestShowDialog, self).tearDown()
+        super().tearDown()
 
     def test_01_execute_command_when_qt_not_initialized(self):
         """

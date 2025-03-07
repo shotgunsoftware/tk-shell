@@ -35,7 +35,7 @@ class TestApp(sgtk.platform.Application):
 
         class AppDialog(sgtk.platform.qt.QtGui.QWidget):
             def __init__(self, parent=None):
-                super(AppDialog, self).__init__(parent)
+                super().__init__(parent)
                 self._layout = sgtk.platform.qt.QtGui.QVBoxLayout(self)
                 self.button = sgtk.platform.qt.QtGui.QPushButton("Close", parent=self)
                 self.button.clicked.connect(self.close)
