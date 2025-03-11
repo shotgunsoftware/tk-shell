@@ -20,7 +20,6 @@ import sys
 import os
 import platform
 
-from tank_vendor import six
 from tank.platform import Engine
 from tank import TankError
 
@@ -59,7 +58,7 @@ class ShellEngine(Engine):
             self._stream_handler.setFormatter(formatter)
             self._log.addHandler(self._stream_handler)
 
-        super(ShellEngine, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def init_engine(self):
         """
@@ -135,10 +134,8 @@ class ShellEngine(Engine):
         """
         cb = self.commands[cmd_key]["callback"]
 
-        getargspec = inspect.getargspec if six.PY2 else inspect.getfullargspec
-
         # make sure the number of parameters to the command are correct
-        cb_arg_spec = getargspec(cb)
+        cb_arg_spec = inspect.getfullargspec(cb)
         cb_arg_list = cb_arg_spec[0]
         cb_var_args = cb_arg_spec[1]
 
@@ -232,7 +229,7 @@ class ShellEngine(Engine):
         """
         Define the QT environment.
         """
-        base = super(ShellEngine, self)._define_qt_base()
+        base = super()._define_qt_base()
 
         if not base["qt_gui"]:
             self._has_qt = False
