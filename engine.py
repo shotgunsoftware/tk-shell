@@ -241,7 +241,7 @@ class ShellEngine(Engine):
                     raise tank.TankError(
                         "The Flow Production Tracking App you are trying to execute "
                         "requires a full QT environment in order to render its UI. A valid "
-                        "PySide2/PySide/PyQt installation could not be found in your python "
+                        "PySide2/PySide6 installation could not be found in your python "
                         "system path."
                     )
 
