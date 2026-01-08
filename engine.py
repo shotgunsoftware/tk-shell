@@ -187,7 +187,7 @@ class ShellEngine(Engine):
                 # start the application loop. This will block the process until the task
                 # has completed - this is either triggered by a main window closing or
                 # byt the finished signal being called from the task class above.
-                qt_application.exec()
+                qt_application.exec_()
             else:
                 # we can run the command now, as the QApp is already started
                 t.run_command()
@@ -265,7 +265,7 @@ class ShellEngine(Engine):
                     self.activateWindow()
                     self.raise_()
 
-                def exec(self):
+                def exec_(self):
                     self.activateWindow()
                     self.raise_()
                     # the trick of activating + raising does not seem to be enough for
@@ -273,7 +273,7 @@ class ShellEngine(Engine):
                     self.setWindowFlags(
                         QtCore.Qt.WindowStaysOnTopHint | self.windowFlags()
                     )
-                    return QtGui.QDialog.exec(self)
+                    return QtGui.QDialog.exec_(self)
 
             base["dialog_base"] = ProxyDialogPyQt
 
