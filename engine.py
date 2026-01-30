@@ -241,7 +241,7 @@ class ShellEngine(Engine):
                     raise tank.TankError(
                         "The Flow Production Tracking App you are trying to execute "
                         "requires a full QT environment in order to render its UI. A valid "
-                        "PySide2/PySide/PyQt installation could not be found in your python "
+                        "PySide2/PySide6 installation could not be found in your python "
                         "system path."
                     )
 
@@ -251,12 +251,6 @@ class ShellEngine(Engine):
             self._has_qt = True
             QtCore = base["qt_core"]
             QtGui = base["qt_gui"]
-
-            # Tell QT4 to interpret C strings as utf-8.
-            # On PySide2 we patch QTextCodec with a do-nothing stub
-            # for setCodecForCStrings(), so this will have no effect.
-            utf8 = QtCore.QTextCodec.codecForName("utf-8")
-            QtCore.QTextCodec.setCodecForCStrings(utf8)
 
             # a simple dialog proxy that pushes the window forward
             class ProxyDialogPyQt(QtGui.QDialog):
